@@ -1,30 +1,33 @@
-
-
-
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Calendify | Responsive Bootstrap 4 Admin Dashboard Template</title>
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+   <title>DevOps FullStack</title>
+
+   <!-- Favicon -->
+   <link rel="shortcut icon"
+      href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN2zmthHgynAvHJdXVNbSfN8ZSvvjw5j6T5g&usqp=CAU"" />
       
-      <!-- Favicon -->
-      <link rel="shortcut icon" href="{{ url_for('static', filename='assets/images/favicon.ico') }}" />
-      
-      <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/backend.min.css') }}">
-      <link rel="stylesheet" href="{{ url_for('static', filename='assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
-      <link rel="stylesheet" href="{{ url_for('static', filename='assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
-      <link rel="stylesheet" href="{{ url_for('static', filename='assets/vendor/remixicon/fonts/remixicon.css') }}">  </head>
-  <body class=" ">
-    <!-- loader Start -->
-    <!-- <div id="loading">
+      <link rel=" stylesheet" href="{{ url_for('static', filename='assets/css/backend.min.css') }}">
+   <link rel="stylesheet"
+      href="{{ url_for('static', filename='assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
+   <link rel="stylesheet"
+      href="{{ url_for('static', filename='assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='assets/vendor/remixicon/fonts/remixicon.css') }}">
+</head>
+
+<body class=" ">
+   <!-- loader Start -->
+   <!-- <div id="loading">
           <div id="loading-center">
           </div>
     </div>
 -->
-    <!-- loader END -->
-    
-      <div class="wrapper">
+   <!-- loader END -->
+
+   <div class="wrapper">
       <section class="login-content">
          <div class="container h-100">
             <div class="row justify-content-center align-items-center height-self-center">
@@ -33,7 +36,7 @@
                      <div class="card-body text-center">
                         <h2>Sign In</h2>
                         <p>Login to stay connected.</p>
-                        <form>
+                        <form action="{{ url_for('auth_sign_in')}}" method="post">
                            <div class="row">
                               <div class="col-lg-12">
                                  <div class="floating-input form-group">
@@ -43,7 +46,8 @@
                               </div>
                               <div class="col-lg-12">
                                  <div class="floating-input form-group">
-                                    <input class="form-control" type="password" name="password" id="password" required />
+                                    <input class="form-control" type="password" name="password" id="password"
+                                       required />
                                     <label class="form-label" for="password">Password</label>
                                  </div>
                               </div>
@@ -68,15 +72,17 @@
             </div>
          </div>
       </section>
-      </div>
-    
-    <!-- Backend Bundle JavaScript -->
-    <script src="{{ url_for('static', filename='assets/js/backend-bundle.min.js') }}"></script>
-    
-    <!-- Chart Custom JavaScript -->
-    <script src="{{ url_for('static', filename='assets/js/customizer.js') }}"></script>
-    
-    
-    <!-- app JavaScript -->
-    <script src="{{ url_for('static', filename='assets/js/app.js') }}"></script>  </body>
+   </div>
+
+   <!-- Backend Bundle JavaScript -->
+   <script src="{{ url_for('static', filename='assets/js/backend-bundle.min.js') }}"></script>
+
+   <!-- Chart Custom JavaScript -->
+   <script src="{{ url_for('static', filename='assets/js/customizer.js') }}"></script>
+
+
+   <!-- app JavaScript -->
+   <script src="{{ url_for('static', filename='assets/js/app.js') }}"></script>
+</body>
+
 </html>

@@ -6,6 +6,8 @@ import secrets
 from passlib.hash import sha256_crypt
 from functools import wraps
 from datetime import datetime, date
+import pytz
+import helper
 
 def is_logged_in(f):
     @wraps(f)
@@ -50,13 +52,44 @@ class Meeting(db.Model):
 def index():
     # get all meetings
     meetings = Meeting.query.all()
-    return render_template('member-landing.html', meetings=meetings)
+    user_timezone = helper.get_user_timezone()
+    meetings_data = []
+    for meeting in meetings:
+        meeting_time = meeting.time
+        meeting_time_zone = meeting.time_zone
+
+        # Create a datetime object for the meeting time
+        meeting_time_obj = datetime.strptime(meeting_time, '%H:%M').time()
+
+        # Combine date and time to create a datetime object
+        meeting_datetime = datetime.combine(meeting.date, meeting_time_obj)
+
+        # # Check if the timezone is aware
+        # if meeting_datetime.tzinfo is None or meeting_datetime.tzinfo.utcoffset(meeting_datetime) is None:
+        #     meeting_datetime = pytz.utc.localize(meeting_datetime)
+        # print(meeting_datetime)
+        # Convert the meeting time to the user's timezone
+        user_timezone_obj = pytz.timezone(user_timezone)
+        meeting_datetime = meeting_datetime.astimezone(user_timezone_obj)
+
+        meetings_data.append({
+            'event_name': meeting.event_name,
+            'tag': meeting.tag,
+            'description': meeting.description,
+            'link': meeting.link,
+            'time': meeting_datetime.strftime('%I:%M %p %Z'),  # Updated format for 12-hour clock with AM/PM
+            'date': meeting_datetime.strftime('%A, %B %d, %Y'),
+            'time_zone': user_timezone
+        })
+    print(meetings_data)
+    return render_template('member-landing.html', meetings=meetings, meetings_data=meetings_data, user_timezone=user_timezone)
 
 
 @app.route('/admin')
 @is_logged_in
 def admin():
     meetings = Meeting.query.all()
+    
     return render_template('admin.html', meetings=meetings)
 
 @app.route('/auth_sign_in', methods=['GET', 'POST'])
@@ -133,6 +166,33 @@ def add_event():
         db.session.commit()
 
     return redirect(url_for('index'))
+
+@app.route('/edit_event/<int:id>', methods=['POST', 'GET'])
+@is_logged_in
+def edit_event(id):
+    form = MeetingForm()
+    meeting = Meeting.query.get(id)
+    if request.method == 'POST':
+        meeting.event_name = request.form['event_name']
+        meeting.tag = request.form['tag']
+        meeting.description = request.form['description']
+        meeting.link = request.form['link']
+        meeting.date = request.form['date']
+        meeting.time = request.form['time']
+        meeting.time_zone = form.time_zone.data
+        db.session.commit()
+        
+        return redirect(url_for('admin'))
+    form.time_zone.data = meeting.time_zone
+    return render_template('edit_event.html', meeting=meeting, form=form)
+
+@app.route('/delete_event/<int:id>', methods=['POST', 'GET'])
+@is_logged_in
+def delete_event(id):
+    meeting = Meeting.query.get(id)
+    db.session.delete(meeting)
+    db.session.commit()
+    return redirect(url_for('admin'))
 
 @app.template_filter('format_time')
 def format_time(value):

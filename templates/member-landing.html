@@ -148,7 +148,7 @@
                             <div id="event1" class="tab-pane fade active show">
                                 {% if meetings %}
                                     <div class="row">
-                                        {% for meeting in meetings %}
+                                        {% for meeting in meetings_data %}
                                         <div class="col-lg-4 col-md-6">
                                             <div class="card card-block card-stretch card-height">
                                                 <div class="card-body rounded event-detail event-detail-danger disabled">
@@ -161,7 +161,9 @@
                                                             <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
                                                                     class="las la-calendar pr-2"></i>{{ meeting.date }}</p>
                                                             <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
-                                                                    class="las la-clock pr-2"></i>{{ meeting.time|format_time }} {{ meeting.time_zone }}</p>
+                                                                    class="las la-clock pr-2"></i>{{ meeting.time }}</p>
+                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                    class="las la-globe-americas pr-2"></i>{{ meeting.time_zone }}</p>
                                                             <div class="d-flex align-items-center pt-4">
                                                                 <!-- <a href="#" class="btn btn-danger mr-3 px-xl-4">50 Min</a> -->
                                                                 <!-- <a href="{{ meeting.link }}"

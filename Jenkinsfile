@@ -5,6 +5,7 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKERHUB_CREDENTIALS = credentials('d4506f04-b98c-47db-95ce-018ceac27ba6')
         BRANCH_NAME = "${GIT_BRANCH.split("/")[1]}"
+        SLACK_WEBHOOK = 'https://hooks.slack.com/services/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'
     }
 
     stages {
@@ -85,11 +86,85 @@ pipeline {
                     dir('./k8s') {
                         kubeconfig(credentialsId: '500a0599-809f-4de0-a060-0fdbb6583332', serverUrl: '') {
                             def targetEnvironment = determineTargetEnvironment()
+                            sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
                             sh "kubectl apply -f ${targetEnvironment}-deployment.yaml"
                             sh "kubectl apply -f ${targetEnvironment}-service.yaml"
                         }
                     }
                 }
+            }
+        }
+    }
+}
+post {
+    always {
+        script {
+            message = """
+            Build ${currentBuild.result}: \n
+            Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) \n
+            Branch ${env.BRANCH_NAME} \n
+            """
+            if (env.BRANCH_NAME == 'dev') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'qa') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'prod') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\"}' ${SLACK_WEBHOOK}"
+            }
+        }
+    }
+    success {
+        script {
+            if (env.BRANCH_NAME == 'dev') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was successful\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'qa') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was successful\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'prod') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was successful\"}' ${SLACK_WEBHOOK}"
+            }
+        }
+    }
+    failure {
+        script {
+            if (env.BRANCH_NAME == 'dev') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} failed\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'qa') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} failed\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'prod') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} failed\"}' ${SLACK_WEBHOOK}"
+            }
+        
+        }
+    }
+    unstable {
+        script {
+            if (env.BRANCH_NAME == 'dev') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was unstable\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'qa') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was unstable\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'prod') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was unstable\"}' ${SLACK_WEBHOOK}"
+            }
+        }
+    }
+    changed {
+        script {
+            if (env.BRANCH_NAME == 'dev') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was changed\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'qa') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was changed\"}' ${SLACK_WEBHOOK}"
+            }
+            else if (env.BRANCH_NAME == 'prod') {
+                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was changed\"}' ${SLACK_WEBHOOK}"
             }
         }
     }
@@ -109,3 +184,11 @@ def determineTargetEnvironment() {
         return 'dev'
     }
 }
+
+def COLOR_MAP = [
+    'dev': 'blue',
+    'qa': 'yellow',
+    'prod': 'red',
+    'success': 'green',
+    'failure': 'red'
+]

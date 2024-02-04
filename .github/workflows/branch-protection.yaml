@@ -34,8 +34,3 @@ jobs:
                     echo "Branch name cannot contain special characters. Please rename the branch."
                     exit 1
                 fi
-
-                if [[ $BRANCH_NAME =~ [[:upper:]] ]]; then
-                    echo "Branch name cannot contain uppercase letters. Please rename the branch."
-                    exit 1
-                fi

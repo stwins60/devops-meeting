@@ -44,7 +44,7 @@
                         <div class="iq-menu-horizontal">
                             <nav class="iq-sidebar-menu">
                                 <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
-                                    <a href="{{ url_for('index') }}" class="header-logo">
+                                    <a href="{{ url_for('admin') }}" class="header-logo">
                                         <img src="{{ url_for('static', filename='assets/images/logo.png') }}"
                                             class="img-fluid rounded-normal" alt="logo">
                                     </a>
@@ -53,8 +53,9 @@
                                     </div>
                                 </div>
                                 <ul id="iq-sidebar-toggle" class="iq-menu d-flex">
+                                    
                                     <li class="active">
-                                        <a href="{{ url_for('index') }}" class="">
+                                        <a href="{{ url_for('admin') }}" class="">
                                             <span>Dashboard</span>
                                         </a>
                                     </li>
@@ -63,7 +64,7 @@
                                             <span>Sign Out</span>
                                         </a>
                                     </li>
-
+                                    
 
                                 </ul>
                             </nav>
@@ -169,10 +170,12 @@
                                                                 data-extra-toggle="copy" title="Copy to clipboard"
                                                                 data-toggle="tooltip"><i
                                                                     class="las la-link pr-2"></i>Copy Link</a> -->
-                                                            <a href="{{ meeting.link }}" class="btn btn-outline-danger turn-on px-xl-4" target="_blank">Join</a>
+                                                            <a href="{{ meeting.link }}" style="margin-right: 20px;" class="btn btn-outline-danger turn-on px-xl-4" target="_blank">Join</a>
                                                             <a href="#"
                                                                 class="btn btn-outline-danger turn-on px-xl-4">Turn
                                                                 On</a>
+                                                            <!-- <a href="{{ url_for('edit_event', id=meeting.id) }}"
+                                                                class="btn btn-outline-danger edit px-xl-4">Edit</a> -->
                                                         </div>
                                                     </div>
                                                     <div class="card-header-toolbar mt-1">
@@ -182,18 +185,9 @@
                                                                 <i class="ri-more-2-fill"></i>
                                                             </span>
                                                             <div class="dropdown-menu dropdown-menu-right">
-                                                                <a class="dropdown-item" href="#"><i
+                                                                <a class="dropdown-item" href="{{ url_for('edit_event', id=meeting.id) }}"><i
                                                                         class="ri-pencil-line mr-3"></i>Edit</a>
-                                                                <a class="dropdown-item" href="#"><i
-                                                                        class="ri-sticky-note-line mr-3"></i>Add
-                                                                    Internal Note</a>
-                                                                <a class="dropdown-item" href="#"><i
-                                                                        class="ri-save-line mr-3"></i>Save to
-                                                                    Template</a>
-                                                                <a class="dropdown-item" href="#"><i
-                                                                        class="ri-code-s-slash-line mr-3"></i>Save to
-                                                                    Website</a>
-                                                                <a class="dropdown-item" href="#"><i
+                                                                <a class="dropdown-item" href="{{ url_for('delete_event', id=meeting.id) }}"><i
                                                                         class="ri-delete-bin-6-line mr-3"></i>Delete</a>
                                                                 <div class="dropdown-item border-top mt-2">
                                                                     <div

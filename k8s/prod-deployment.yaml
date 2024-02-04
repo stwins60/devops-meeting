@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prod-devops-meeting-deployment
+  namespace: prod-namespace
+  labels:
+    app: prod-devops-meeting-deployment
+spec:
+  selector:
+    matchLabels:
+      app: prod-devops-meeting-deployment
+  template:
+    metadata:
+      labels:
+        app: prod-devops-meeting-deployment
+    spec:
+      containers:
+      - name: prod-devops-meeting-deployment
+        image: idrisniyi94/devops-meeting:prod
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5000
+

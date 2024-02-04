@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>DevOps FullStack</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon"
+        href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN2zmthHgynAvHJdXVNbSfN8ZSvvjw5j6T5g&usqp=CAU"" />
+
+    <link rel=" stylesheet" href="{{ url_for('static', filename='assets/css/backend.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/vendor/remixicon/fonts/remixicon.css') }}">
+</head>
+
+<body class="fixed-top-navbar top-nav  ">
+    <!-- loader Start -->
+    <!-- <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+-->
+    <!-- loader END -->
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+        <div class="iq-top-navbar">
+            <div class="container">
+                <div class="iq-navbar-custom">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
+                            <i class="ri-menu-line wrapper-menu"></i>
+                            <a href="{{ url_for('index') }}" class="header-logo">
+                                <img src="{{ url_for('static', filename='assets/images/logo.png') }}"
+                                    class="img-fluid rounded-normal light-logo" alt="logo">
+                                <img src="{{ url_for('static', filename='assets/images/logo-white.png') }}"
+                                    class="img-fluid rounded-normal darkmode-logo" alt="logo">
+                            </a>
+                        </div>
+                        <div class="iq-menu-horizontal">
+                            <nav class="iq-sidebar-menu">
+                                <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
+                                    <a href="{{ url_for('index') }}" class="header-logo">
+                                        <img src="{{ url_for('static', filename='assets/images/logo.png') }}"
+                                            class="img-fluid rounded-normal" alt="logo">
+                                    </a>
+                                    <div class="iq-menu-bt-sidebar">
+                                        <i class="las la-bars wrapper-menu"></i>
+                                    </div>
+                                </div>
+                                <ul id="iq-sidebar-toggle" class="iq-menu d-flex">
+                                    <li class="active">
+                                        <a href="{{ url_for('index') }}" class="">
+                                            <span>Dashboard</span>
+                                        </a>
+                                    </li>
+                                    <li class=" ">
+                                        <a href="{{ url_for('auth_sign_in') }}" class="">
+                                            <span>Admin Login</span>
+                                        </a>
+                                    </li>
+
+
+                                </ul>
+                            </nav>
+                        </div>
+                        <nav class="navbar navbar-expand-lg navbar-light p-0">
+                            <div class="change-mode">
+                                <div class="custom-control custom-switch custom-switch-icon custom-control-indivne">
+                                    <div class="custom-switch-inner">
+                                        <p class="mb-0"> </p>
+                                        <input type="checkbox" class="custom-control-input" id="dark-mode"
+                                            data-active="true">
+                                        <label class="custom-control-label" for="dark-mode" data-mode="toggle">
+                                            <span class="switch-icon-left"><i
+                                                    class="a-left ri-moon-clear-line"></i></span>
+                                            <span class="switch-icon-right"><i class="a-right ri-sun-line"></i></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="navbar-toggler" type="button" data-toggle="collapse"
+                                data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                                aria-label="Toggle navigation">
+                                <i class="ri-menu-3-line"></i>
+                            </button>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-page">
+            <div class="content-top">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="navbar-breadcrumb">
+                                    <h1 class="mb-1" style="text-align: center;">DevOps FullStack Demo</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-10 col-md-8">
+                            <ul class="d-flex nav nav-pills mb-4 text-center event-tab" id="event-pills-tab"
+                                role="tablist">
+                                <!-- <li class="nav-item">
+                                    <a id="view-btn" class="nav-link active show" data-toggle="pill" href="#event1"
+                                        data-extra="#search-with-button" role="tab" aria-selected="true">Event Type</a>
+                                </li> -->
+                                <!-- <li class="nav-item">
+                                    <a id="view-schedule" class="nav-link" data-toggle="pill" href="#event2"
+                                        data-extra="#view-event" role="tab" aria-selected="false">Schedule Event</a>
+                                </li> -->
+                                <!-- <li class="nav-item">
+                                    <a id="view-workflow" class="nav-link" data-toggle="pill" href="#event3"
+                                        data-extra="#view-data" role="tab" aria-selected="false">Workflow</a>
+                                </li> -->
+                            </ul>
+                        </div>
+                        <div class="col-lg-2 col-md-4 tab-extra" id="view-event">
+                            <div class="float-md-right mb-4"><a href="#event1" class="btn view-btn">View Event</a></div>
+                        </div>
+                    </div>
+                    <div class="tab-extra active" id="search-with-button">
+                        <div class="d-flex flex-wrap align-items-center mb-4">
+                            <div class="iq-search-bar search-device mb-0 pr-3">
+                                <form action="#" class="searchbox">
+                                    <input type="text" class="text search-input" placeholder="Search...">
+                                </form>
+                            </div>
+                            <!-- <div class="float-sm-right"><a href="{{ url_for('new_event') }}"
+                                    class="btn btn-primary pr-5 position-relative" style="height: 40px;">Add Event<span
+                                        class="event-add-btn" style="height: 40px;"><i
+                                            class="ri-add-line"></i></span></a></div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="event-content">
+                            <div id="event1" class="tab-pane fade active show">
+                                {% if meetings %}
+                                    <div class="row">
+                                        {% for meeting in meetings %}
+                                        <div class="col-lg-4 col-md-6">
+                                            <div class="card card-block card-stretch card-height">
+                                                <div class="card-body rounded event-detail event-detail-danger disabled">
+                                                    <div class="d-flex align-items-top justify-content-between">
+                                                        <div>
+                                                            <h4 class="mb-2 mr-4">{{ meeting.event_name }}</h4>
+                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                    class="fab la-dev pr-2"></i>{{ meeting.tag }}</p>
+                                                            <p class="mb-4 card-description">{{ meeting.description }}</p>
+                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                    class="las la-calendar pr-2"></i>{{ meeting.date }}</p>
+                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                    class="las la-clock pr-2"></i>{{ meeting.time|format_time }} {{ meeting.time_zone }}</p>
+                                                            <div class="d-flex align-items-center pt-4">
+                                                                <!-- <a href="#" class="btn btn-danger mr-3 px-xl-4">50 Min</a> -->
+                                                                <!-- <a href="{{ meeting.link }}"
+                                                                    class="btn btn-outline-danger copy d-none px-xl-4"
+                                                                    data-extra-toggle="copy" title="Copy to clipboard"
+                                                                    data-toggle="tooltip"><i
+                                                                        class="las la-link pr-2"></i>Copy Link</a> -->
+                                                                <a href="{{ meeting.link }}" class="btn btn-outline-danger px-xl-4" target="_blank">Join</a>
+                                                                <a href="#"
+                                                                    class="btn btn-outline-danger turn-on px-xl-4">Turn
+                                                                    On</a>
+                                                            </div>
+                                                        </div>
+                                                
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p style="text-align: center; font-size: xx-large; font-weight: bolder;">No meetings has been scheduled.</p>
+                                {% endif %}
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Wrapper End-->
+            <footer class="iq-footer" style="padding-top: 500px;">
+                <div class="container-fluid container">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <ul class="list-inline mb-0">
+                                <li class="list-inline-item"><a href="../backend/privacy-policy.html">Privacy Policy</a>
+                                </li>
+                                <li class="list-inline-item"><a href="../backend/terms-of-service.html">Terms of Use</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-6 text-right">
+                            Copyright 2020 <a href="#">DevOps FullStack</a> All Rights Reserved.
+                        </div>
+                    </div>
+                </div>
+            </footer>
+            <!-- Backend Bundle JavaScript -->
+            <script src="{{ url_for('static', filename='assets/js/backend-bundle.min.js') }}"></script>
+
+            <!-- Chart Custom JavaScript -->
+            <script src="{{ url_for('static', filename='assets/js/customizer.js') }}"></script>
+
+
+            <!-- app JavaScript -->
+            <script src="{{ url_for('static', filename='assets/js/app.js') }}"></script>
+
+            <!-- Include Clipboard.js library -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var clipboard = new ClipboardJS('#copyLinkButton');
+
+        clipboard.on('success', function (e) {
+            console.info('Action:', e.action);
+            console.info('Text:', e.text);
+            console.info('Trigger:', e.trigger);
+
+            // Optionally, you can display a notification or perform other actions when copying is successful.
+            // Example: alert('Link copied to clipboard!');
+        });
+
+        clipboard.on('error', function (e) {
+            console.error('Action:', e.action);
+            console.error('Trigger:', e.trigger);
+
+            // Optionally, you can handle errors when copying fails.
+        });
+    });
+</script>
+</html>

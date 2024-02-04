@@ -1,0 +1,41 @@
+name: Branch Protection
+
+on:
+    push:
+        branches:
+            - '*'
+
+jobs:
+    branch-protection:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check branch name
+              run: |
+                BRANCH_NAME=$(echo $GITHUB_REF | sed 's#.*/##')
+
+                if [[ $BRANCH_NAME == "dev" || $BRANCH_NAME == "qa" || $BRANCH_NAME == "prod" ]]; then
+                    echo "Pushing directly to #$BRANCH_NAME is not allowed. Please create a pull request."
+                    exit 1
+                fi
+    validate-checkout:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Validate branch name during checkout
+              
+              run: |
+                BRANCH_NAME=$(echo $GITHUB_REF | sed 's#.*/##')
+
+                if [[ $BRANCH_NAME =~ [[:space:]] ]]; then
+                    echo "Branch name cannot contain spaces. Please rename the branch."
+                    exit 1
+                fi
+
+                if [[ $BRANCH_NAME =~ [[:punct:]] ]]; then
+                    echo "Branch name cannot contain special characters. Please rename the branch."
+                    exit 1
+                fi
+
+                if [[ $BRANCH_NAME =~ [[:upper:]] ]]; then
+                    echo "Branch name cannot contain uppercase letters. Please rename the branch."
+                    exit 1
+                fi

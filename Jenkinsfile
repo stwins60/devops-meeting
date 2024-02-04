@@ -60,8 +60,10 @@ pipeline {
 
         stage('Trivy Image Scan') {
             steps {
-                def imageTag = determineTargetEnvironment()
-                sh "trivy image idrisniyi94/devops-meeting:${imageTag} > image-scan.txt"
+                script {
+                    def imageTag = determineTargetEnvironment()
+                    sh "trivy image idrisniyi94/devops-meeting:${imageTag} > devops-meeting-image-scan.txt"
+                }
             }
         }
 

@@ -5,7 +5,7 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKERHUB_CREDENTIALS = credentials('d4506f04-b98c-47db-95ce-018ceac27ba6')
         BRANCH_NAME = "${GIT_BRANCH.split("/")[1]}"
-        SLACK_WEBHOOK = 'https://hooks.slack.com/services/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'
+        SLACK_WEBHOOK = credentials('11563aa0-e08f-4a9b-baa2-ac70c795ada9')
     }
 
     stages {
@@ -57,7 +57,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag} ."
+                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.CHANGE_ID} ."
                 }
             }
         }
@@ -66,7 +66,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "trivy image idrisniyi94/devops-meeting:${imageTag} > devops-meeting-image-scan.txt"
+                    sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.CHANGE_ID} > devops-meeting-image-scan.txt"
                 }
             }
         }
@@ -75,7 +75,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "docker push idrisniyi94/devops-meeting:${imageTag}"
+                    sh "docker push idrisniyi94/devops-meeting:${imageTag}-${env.CHANGE_ID}"
                 }
             }
         }
@@ -87,6 +87,7 @@ pipeline {
                         kubeconfig(credentialsId: '500a0599-809f-4de0-a060-0fdbb6583332', serverUrl: '') {
                             def targetEnvironment = determineTargetEnvironment()
                             sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
+                            sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.CHANGE_ID}/' ${targetEnvironment}-deployment.yaml"
                             sh "kubectl apply -f ${targetEnvironment}-deployment.yaml"
                             sh "kubectl apply -f ${targetEnvironment}-service.yaml"
                         }
@@ -95,80 +96,13 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            sendSlackNotification()
+        }
+    }        
 }
-post {
-    always {
-        script {
-            message = """
-            Build ${currentBuild.result}: \n
-            Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) \n
-            Branch ${env.BRANCH_NAME} \n
-            """
-            if (env.BRANCH_NAME == 'dev') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'qa') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'prod') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\"}' ${SLACK_WEBHOOK}"
-            }
-        }
-    }
-    success {
-        script {
-            if (env.BRANCH_NAME == 'dev') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was successful\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'qa') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was successful\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'prod') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was successful\"}' ${SLACK_WEBHOOK}"
-            }
-        }
-    }
-    failure {
-        script {
-            if (env.BRANCH_NAME == 'dev') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} failed\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'qa') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} failed\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'prod') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} failed\"}' ${SLACK_WEBHOOK}"
-            }
-        
-        }
-    }
-    unstable {
-        script {
-            if (env.BRANCH_NAME == 'dev') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was unstable\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'qa') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was unstable\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'prod') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was unstable\"}' ${SLACK_WEBHOOK}"
-            }
-        }
-    }
-    changed {
-        script {
-            if (env.BRANCH_NAME == 'dev') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was changed\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'qa') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was changed\"}' ${SLACK_WEBHOOK}"
-            }
-            else if (env.BRANCH_NAME == 'prod') {
-                sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"Build ${env.BRANCH_NAME} was changed\"}' ${SLACK_WEBHOOK}"
-            }
-        }
-    }
-}
+
 
 // def gitCheckout(branch, repositoryUrl) {
 //     git branch: branch, url: repositoryUrl
@@ -183,6 +117,16 @@ def determineTargetEnvironment() {
     } else {
         return 'dev'
     }
+}
+
+def sendSlackNotification() {
+    def color = COLOR_MAP[currentBuild.result]
+    def message = """
+    Build ${currentBuild.result}: \n
+    Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) \n
+    Branch ${env.BRANCH_NAME} \n
+    """
+    sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\", \"color\":\"${color}\"}' ${SLACK_WEBHOOK}"
 }
 
 def COLOR_MAP = [

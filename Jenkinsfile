@@ -57,7 +57,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.CHANGE_ID} ."
+                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
                 }
             }
         }
@@ -66,7 +66,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.CHANGE_ID} > devops-meeting-image-scan.txt"
+                    sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} > devops-meeting-image-scan.txt"
                 }
             }
         }
@@ -75,7 +75,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "docker push idrisniyi94/devops-meeting:${imageTag}-${env.CHANGE_ID}"
+                    sh "docker push idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
                 }
             }
         }
@@ -87,7 +87,7 @@ pipeline {
                         kubeconfig(credentialsId: '500a0599-809f-4de0-a060-0fdbb6583332', serverUrl: '') {
                             def targetEnvironment = determineTargetEnvironment()
                             sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
-                            sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.CHANGE_ID}/' ${targetEnvironment}-deployment.yaml"
+                            sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.BUILD_ID}/' ${targetEnvironment}-deployment.yaml"
                             sh "kubectl apply -f ${targetEnvironment}-deployment.yaml"
                             sh "kubectl apply -f ${targetEnvironment}-service.yaml"
                         }
@@ -97,10 +97,13 @@ pipeline {
         }
     }
     post {
-        always {
-            sendSlackNotification()
+        success {
+            slackSend channel: '#alerts', color: 'good', message: "${currentBuild.currentResult}: ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BRANCH_NAME}. \n More Info ${env.BUILD_URL}"
         }
-    }        
+        failure {
+            slackSend channel: '#alerts', color: 'danger', message: "${currentBuild.currentResult}: ${env.JOB_NAME} ${env.BUILD_NUMBER} . Check the pipeline. \n More Info ${env.BUILD_URL}"
+        }
+    }      
 }
 
 
@@ -118,21 +121,3 @@ def determineTargetEnvironment() {
         return 'dev'
     }
 }
-
-def sendSlackNotification() {
-    def color = COLOR_MAP[currentBuild.result]
-    def message = """
-    Build ${currentBuild.result}: \n
-    Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) \n
-    Branch ${env.BRANCH_NAME} \n
-    """
-    sh "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${message}\", \"color\":\"${color}\"}' ${SLACK_WEBHOOK}"
-}
-
-def COLOR_MAP = [
-    'dev': 'blue',
-    'qa': 'yellow',
-    'prod': 'red',
-    'success': 'green',
-    'failure': 'red'
-]

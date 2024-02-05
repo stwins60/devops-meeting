@@ -58,7 +58,7 @@ pipeline {
                 script {
                     def imageTag = determineTargetEnvironment()
                     if (imageTag == 'prod') {
-                        sh "sed -i 's/CMD \[\"python\", \"app.py\"\]/CMD \[\"waitress-serve\", \"--listen=*:5000\", \"app:app\"\]/' Dockerfile"
+                        sh "sed -i 's/CMD \\[\"python\", \"app.py\"\\]/CMD \\[\"waitress-serve\", \"--listen=*:5000\", \"app:app\"\\]/' Dockerfile"
                         sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
                     }
                     else {

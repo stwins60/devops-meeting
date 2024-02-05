@@ -42,7 +42,7 @@ pipeline {
 
         stage('Trivy File Scan') {
             steps {
-                sh "trivy fs . > trivy-result.txt"
+                sh "trivy fs . > trivy-${env.BRANCH_NAME}-result.txt"
             }
         }
 
@@ -57,7 +57,13 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
+                    if (imageTag == 'prod') {
+                        sh "sed -i 's/CMD \[\"python\", \"app.py\"\]/CMD \[\"waitress-serve\", \"--listen=*:5000\", \"app:app\"\]/' Dockerfile"
+                        sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
+                    }
+                    else {
+                        sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
+                    }
                 }
             }
         }
@@ -66,7 +72,7 @@ pipeline {
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} > devops-meeting-image-scan.txt"
+                    sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} > devops-meeting-${imageTag}-trivy-result.txt"
                 }
             }
         }
@@ -98,10 +104,12 @@ pipeline {
     }
     post {
         success {
-            slackSend channel: '#alerts', color: 'good', message: "${currentBuild.currentResult}: ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BRANCH_NAME}. \n More Info ${env.BUILD_URL}"
+            message = """${currentBuild.currentResult}: \nJOB_NAME: ${env.JOB_NAME} \nBUILD_NUMBER: ${env.BUILD_NUMBER} \nBRANCH_NAME: ${env.BRANCH_NAME}. \n More Info ${env.BUILD_URL}"""
+            slackSend channel: '#alerts', color: 'good', message: message
         }
         failure {
-            slackSend channel: '#alerts', color: 'danger', message: "${currentBuild.currentResult}: ${env.JOB_NAME} ${env.BUILD_NUMBER} . Check the pipeline. \n More Info ${env.BUILD_URL}"
+            message = """${currentBuild.currentResult}: \nJOB_NAME: ${env.JOB_NAME} \nBUILD_NUMBER: ${env.BUILD_NUMBER} \nBRANCH_NAME: ${env.BRANCH_NAME}. \n More Info ${env.BUILD_URL}"""
+            slackSend channel: '#alerts', color: 'danger', message: message
         }
     }      
 }

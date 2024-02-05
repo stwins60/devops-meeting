@@ -65,12 +65,12 @@ def index():
         meeting_datetime = datetime.combine(meeting.date, meeting_time_obj)
 
         # # Check if the timezone is aware
-        # if meeting_datetime.tzinfo is None or meeting_datetime.tzinfo.utcoffset(meeting_datetime) is None:
-        #     meeting_datetime = pytz.utc.localize(meeting_datetime)
-        # print(meeting_datetime)
+        if meeting_datetime.tzinfo is None or meeting_datetime.tzinfo.utcoffset(meeting_datetime) is None:
+            meeting_datetime = pytz.utc.localize(meeting_datetime)
+        print(meeting_datetime)
         # Convert the meeting time to the user's timezone
         user_timezone_obj = pytz.timezone(user_timezone)
-        meeting_datetime = meeting_datetime.astimezone(user_timezone_obj)
+        # meeting_datetime = meeting_datetime.astimezone(user_timezone_obj)
 
         meetings_data.append({
             'event_name': meeting.event_name,

@@ -113,7 +113,6 @@ pipeline {
                         dir('./k8s') {
                             kubeconfig(credentialsId: '3f12ff7b-93cb-4ea5-bc21-79bcf5fb1925', serverUrl: '') {
                                 def targetEnvironment = determineTargetEnvironment()
-                                sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
                                 sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.BUILD_ID}/' ${targetEnvironment}-deployment.yaml"
                                 sh "kubectl apply -f ${targetEnvironment}-deployment.yaml"
                                 sh "kubectl apply -f ${targetEnvironment}-service.yaml"

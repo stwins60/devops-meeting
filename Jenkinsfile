@@ -92,7 +92,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    if params.DEPLOYMENT == 'DockerContainer' {
+                    if (params.DEPLOYMENT == 'DockerContainer') {
                         def containerName = "devops-meeting-${env.BRANCH_NAME}"
                     } else {
                         dir('./k8s') {

@@ -5,7 +5,6 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKERHUB_CREDENTIALS = credentials('5f8b634a-148a-4067-b996-07b4b3276fba')
         BRANCH_NAME = "${GIT_BRANCH.split("/")[1]}"
-        SLACK_WEBHOOK = credentials('a3931159-e471-4ec0-8b21-c090749c2c39')
     }
 
     parameters {

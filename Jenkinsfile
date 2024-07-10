@@ -59,18 +59,13 @@ pipeline {
         stage('Docker Build') {
             when {
                 expression {
-                    return params.DEPLOYMENT == 'DockerContainer'
+                    return params.DEPLOYMENT == 'DockerContainer' || params.DEPLOYMENT == 'Kubernetes'
                 }
             }
             steps {
                 script {
                     def imageTag = determineTargetEnvironment()
-                    if (imageTag == 'prod') {
-                        sh "sed -i 's/CMD \\[\"python\", \"app.py\"\\]/CMD \\[\"waitress-serve\", \"--listen=*:5000\", \"app:app\"\\]/' Dockerfile"
-                        sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
-                    } else {
-                        sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
-                    }
+                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
                 }
             }
         }
@@ -78,7 +73,7 @@ pipeline {
         stage('Trivy Image Scan') {
             when {
                 expression {
-                    return params.DEPLOYMENT == 'DockerContainer'
+                    return params.DEPLOYMENT == 'DockerContainer' || params.DEPLOYMENT == 'Kubernetes'
                 }
             }
             steps {
@@ -92,7 +87,7 @@ pipeline {
         stage('Docker Push') {
             when {
                 expression {
-                    return params.DEPLOYMENT == 'DockerContainer'
+                    return params.DEPLOYMENT == 'DockerContainer' || params.DEPLOYMENT == 'Kubernetes'
                 }
             }
             steps {

@@ -13,6 +13,15 @@ spec:
         app: qa-devops-meeting-deployment
         
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - docker-server
       containers:
       - name: qa-devops-meeting-deployment
         image: idrisniyi94/devops-meeting:qa

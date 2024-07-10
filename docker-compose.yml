@@ -1,0 +1,31 @@
+services:
+  frontend:
+    image: devops-meeting-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "123456"
+      MYSQL_HOST: "db"
+      MYSQL_DB: "meetings"
+    networks:
+      - app_net
+    depends_on:
+      - db
+  
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: meetings
+    ports:
+      - "3306:3306"
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge

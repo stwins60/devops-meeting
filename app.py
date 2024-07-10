@@ -8,6 +8,7 @@ from functools import wraps
 from datetime import datetime, date
 import pytz
 import helper
+import os
 
 def is_logged_in(f):
     @wraps(f)
@@ -22,7 +23,15 @@ def is_logged_in(f):
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(64)
 
+MYSQL_USER = os.getenv('MYSQL_USER')
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+MYSQL_HOST = os.getenv('MYSQL_HOST')
+MYSQL_DB = os.getenv('MYSQL_DB')
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meetings.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:123456@localhost/meetings"
+#app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 

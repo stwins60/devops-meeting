@@ -8,3 +8,5 @@ passlib
 waitress
 pytz
 requests
+PyMySQL
+PyMySQL[rsa]

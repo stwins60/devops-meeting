@@ -8,6 +8,10 @@ pipeline {
         SLACK_WEBHOOK = credentials('11563aa0-e08f-4a9b-baa2-ac70c795ada9')
     }
 
+    parameters {
+        choice(name: 'DEPLOYMENT', choices: ['DockerContainer', 'Kubernetes'], description: 'Deployment type')
+    }
+
     stages {
         stage('Clean Workspace') {
             steps {
@@ -24,7 +28,7 @@ pipeline {
             steps {
                 script {
                     withSonarQubeEnv('sonar-server') {
-                        sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=devops-meeting -Dsonar.projectName=devops-meeting -Dsonar.sources=. -Dsonar.host.url=http://192.168.0.43:9000 -Dsonar.login=sqp_8a0e7752fe6052769eeeb3942f42d125de0c4855"
+                        sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=devops-meeting -Dsonar.projectName=devops-meeting"
                     }
                 }
             }
@@ -89,13 +93,17 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    dir('./k8s') {
-                        kubeconfig(credentialsId: '500a0599-809f-4de0-a060-0fdbb6583332', serverUrl: '') {
-                            def targetEnvironment = determineTargetEnvironment()
-                            sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
-                            sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.BUILD_ID}/' ${targetEnvironment}-deployment.yaml"
-                            sh "kubectl apply -f ${targetEnvironment}-deployment.yaml"
-                            sh "kubectl apply -f ${targetEnvironment}-service.yaml"
+                    if params.DEPLOYMENT == 'DockerContainer' {
+                        def containerName = "devops-meeting-${env.BRANCH_NAME}"
+                    } else {
+                        dir('./k8s') {
+                            kubeconfig(credentialsId: '500a0599-809f-4de0-a060-0fdbb6583332', serverUrl: '') {
+                                def targetEnvironment = determineTargetEnvironment()
+                                sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
+                                sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.BUILD_ID}/' ${targetEnvironment}-deployment.yaml"
+                                sh "kubectl apply -f ${targetEnvironment}-deployment.yaml"
+                                sh "kubectl apply -f ${targetEnvironment}-service.yaml"
+                            }
                         }
                     }
                 }
@@ -114,10 +122,6 @@ pipeline {
     }      
 }
 
-
-// def gitCheckout(branch, repositoryUrl) {
-//     git branch: branch, url: repositoryUrl
-// }
 
 def determineTargetEnvironment() {
     def branchName = env.BRANCH_NAME

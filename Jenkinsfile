@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
-        DOCKERHUB_CREDENTIALS = credentials('d4506f04-b98c-47db-95ce-018ceac27ba6')
+        DOCKERHUB_CREDENTIALS = credentials('5f8b634a-148a-4067-b996-07b4b3276fba')
         BRANCH_NAME = "${GIT_BRANCH.split("/")[1]}"
-        SLACK_WEBHOOK = credentials('11563aa0-e08f-4a9b-baa2-ac70c795ada9')
+        SLACK_WEBHOOK = credentials('a3931159-e471-4ec0-8b21-c090749c2c39')
     }
 
     parameters {
@@ -97,7 +97,7 @@ pipeline {
                         def containerName = "devops-meeting-${env.BRANCH_NAME}"
                     } else {
                         dir('./k8s') {
-                            kubeconfig(credentialsId: '500a0599-809f-4de0-a060-0fdbb6583332', serverUrl: '') {
+                            kubeconfig(credentialsId: '3f12ff7b-93cb-4ea5-bc21-79bcf5fb1925', serverUrl: '') {
                                 def targetEnvironment = determineTargetEnvironment()
                                 sh "kubectl delete -f ${targetEnvironment}-deployment.yaml"
                                 sh "sed -i 's/devops-meeting:.*/devops-meeting:${targetEnvironment}-${env.BUILD_ID}/' ${targetEnvironment}-deployment.yaml"

@@ -2,3 +2,11 @@ flask
 flask-cors
 flask-sqlalchemy
 sqlalchemy
+flask-wtf
+wtforms
+passlib
+waitress
+pytz
+requests
+PyMySQL
+PyMySQL[rsa]

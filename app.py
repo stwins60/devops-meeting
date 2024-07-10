@@ -76,9 +76,9 @@ def index():
         # # Check if the timezone is aware
         if meeting_datetime.tzinfo is None or meeting_datetime.tzinfo.utcoffset(meeting_datetime) is None:
             meeting_datetime = pytz.utc.localize(meeting_datetime)
-        print(meeting_datetime)
+            print(meeting_datetime)
         # Convert the meeting time to the user's timezone
-        user_timezone_obj = pytz.timezone(user_timezone)
+        # user_timezone_obj = pytz.timezone(user_timezone)
         # meeting_datetime = meeting_datetime.astimezone(user_timezone_obj)
 
         meetings_data.append({
@@ -180,7 +180,7 @@ def add_event():
 @is_logged_in
 def edit_event(id):
     form = MeetingForm()
-    meeting = Meeting.query.get(id)
+    meeting = db.session.query(Meeting).filter(Meeting.id == id).first()
     if request.method == 'POST':
         meeting.event_name = request.form['event_name']
         meeting.tag = request.form['tag']
@@ -198,7 +198,7 @@ def edit_event(id):
 @app.route('/delete_event/<int:id>', methods=['POST', 'GET'])
 @is_logged_in
 def delete_event(id):
-    meeting = Meeting.query.get(id)
+    meeting = db.session.query(Meeting).filter(Meeting.id == id).first()
     db.session.delete(meeting)
     db.session.commit()
     return redirect(url_for('admin'))

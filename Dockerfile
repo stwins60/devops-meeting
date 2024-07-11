@@ -1,16 +1,10 @@
-FROM python:3.11-slim AS base
+FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt .
 
 RUN pip install -r requirements.txt --no-cache-dir
-
-FROM python:3.11-slim AS dev
-
-WORKDIR /app
-
-COPY --from=base /app /app
 
 COPY . .
 

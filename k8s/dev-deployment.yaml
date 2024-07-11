@@ -21,7 +21,7 @@ spec:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
-                - docker-server
+                - proxmox-ser
       containers:
       - name: dev-devops-meeting-deployment
         image: idrisniyi94/devops-meeting:dev

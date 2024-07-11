@@ -10,3 +10,7 @@ pytz
 requests
 PyMySQL
 PyMySQL[rsa]
+python-dotenv
+aiohttp>=3.9.0
+sentry-sdk[flask]
+sentry-sdk[aiohttp]

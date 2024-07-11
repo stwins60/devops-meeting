@@ -14,8 +14,10 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 import sentry_sdk
 from dotenv import load_dotenv
 import os
+import logging
 
 load_dotenv()
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def is_logged_in(f):
     @wraps(f)
@@ -24,6 +26,7 @@ def is_logged_in(f):
             return f(*args, **kwargs)
         else:
             flash('Unauthorized, Please login', 'danger')
+            logging.error('Unauthorized, Please login')
             return redirect(url_for('auth_sign_in'))
     return wrap
 
@@ -110,7 +113,7 @@ def index():
         # # Check if the timezone is aware
         if meeting_datetime.tzinfo is None or meeting_datetime.tzinfo.utcoffset(meeting_datetime) is None:
             meeting_datetime = pytz.utc.localize(meeting_datetime)
-            print(meeting_datetime)
+            # print(meeting_datetime)
         # Convert the meeting time to the user's timezone
         # user_timezone_obj = pytz.timezone(user_timezone)
         # meeting_datetime = meeting_datetime.astimezone(user_timezone_obj)
@@ -124,7 +127,7 @@ def index():
             'date': meeting_datetime.strftime('%A, %B %d, %Y'),
             'time_zone': user_timezone
         })
-    print(meetings_data)
+    logging.info('Meetings data: %s', meetings_data)
     
     response = make_response(
         render_template('member-landing.html', meetings=meetings, meetings_data=meetings_data, user_timezone=user_timezone),
@@ -138,7 +141,7 @@ def index():
 @is_logged_in
 def admin():
     meetings = Meeting.query.all()
-    
+    logging.info('Meetings: %s', meetings)
     response = make_response(
         render_template('admin.html', meetings=meetings),
         200
@@ -153,16 +156,15 @@ def auth_sign_in():
             username = request.form['username']
             password = request.form['password']
             
-            print(username, password)
             # user = User.query.filter_by(email=email).first():
                 # if sha256_crypt.verify(password, user.password):
             if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-                print('Logged in')
+                logging.info('Logged in as admin')
                 session['username'] = username
                 flash('You are now logged in', 'success')
                 return redirect(url_for('admin'))
             else:
-                print('Invalid password')
+                logging.error('Invalid password')
                 flash('Invalid password', 'danger')
                 return redirect(url_for('auth_sign_in'))
 
@@ -179,6 +181,7 @@ def auth_sign_in():
 @app.route('/auth_sign_out')
 def auth_sign_out():
     session.clear()
+    logging.info('Logged out')
     flash('You are now logged out', 'success')
     return redirect(url_for('index'))
 
@@ -193,6 +196,7 @@ def auth_sign_up():
         db.session.add(user)
         db.session.commit()
         flash('You are now registered and can log in', 'success')
+        logging.info('User registered')
         return redirect(url_for('auth_sign_in'))
     response = make_response(
         render_template('auth-sign-up.html'),
@@ -203,6 +207,7 @@ def auth_sign_up():
 
 @app.route('/page_add_event')
 def page_add_event():
+    logging.info('Add event page')
     response = make_response(
         render_template('page-add-event.html'),
         200
@@ -213,7 +218,7 @@ def page_add_event():
 @app.route('/new_event')
 def new_event():
     form = MeetingForm()
-
+    logging.info('New event page')
     response = make_response(
         render_template('page-new-event.html', form=form),
         200
@@ -234,7 +239,7 @@ def add_event():
     time = request.form['time']
     time_zone = form.time_zone.data
 
-    print(event_name, description, link, date, time, time_zone)
+    # print(event_name, description, link, date, time, time_zone)
 
     date_obj = datetime.strptime(date, '%Y-%m-%d').date()
 
@@ -242,6 +247,7 @@ def add_event():
         new_meeting = Meeting(event_name=event_name, tag=tag, description=description, link=link, time=time, time_zone=time_zone, date=date_obj)
         db.session.add(new_meeting)
         db.session.commit()
+        logging.info('New event added')
 
     return redirect(url_for('index'))
 
@@ -259,9 +265,10 @@ def edit_event(id):
         meeting.time = request.form['time']
         meeting.time_zone = form.time_zone.data
         db.session.commit()
-        
+        logging.info('Event edited')
         return redirect(url_for('admin'))
     form.time_zone.data = meeting.time_zone
+    logging.info('Edit event page')
     response = make_response(
         render_template('edit_event.html', meeting=meeting, form=form),
         200
@@ -275,6 +282,7 @@ def delete_event(id):
     meeting = db.session.query(Meeting).filter(Meeting.id == id).first()
     db.session.delete(meeting)
     db.session.commit()
+    logging.info('Event deleted')
     return redirect(url_for('admin'))
 
 @app.template_filter('format_time')
@@ -327,6 +335,7 @@ def page_not_found(e):
         render_template('404.html'),
         404
     )
+    logging.error('Page not found')
     response.headers.update(headers)
     return response
 
@@ -337,6 +346,7 @@ def internal_server_error(e):
         render_template('500.html'),
         500
     )
+    logging.error('Internal server error')
     response.headers.update(headers)
     return response
 

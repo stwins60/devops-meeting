@@ -27,11 +27,12 @@ MYSQL_USER = os.getenv('MYSQL_USER')
 MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 MYSQL_HOST = os.getenv('MYSQL_HOST')
 MYSQL_DB = os.getenv('MYSQL_DB')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meetings.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meetings.db'
 # app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:123456@localhost/meetings"
-#app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -109,7 +110,8 @@ def auth_sign_in():
             password = request.form['password']
             user = User.query.filter_by(email=email).first()
             if user:
-                if sha256_crypt.verify(password, user.password):
+                # if sha256_crypt.verify(password, user.password):
+                if password == ADMIN_PASSWORD:
                     session['email'] = email
                     flash('You are now logged in', 'success')
                     return redirect(url_for('admin'))
@@ -134,7 +136,7 @@ def auth_sign_up():
         first_name = request.form['firstname']
         last_name = request.form['lastname']
         email = request.form['email']
-        password = sha256_crypt.encrypt(str(request.form['password']))
+        password = sha256_crypt.hash(str(request.form['password']))
         user = User(first_name=first_name, last_name=last_name, email=email, password=password)
         db.session.add(user)
         db.session.commit()

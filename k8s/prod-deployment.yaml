@@ -6,6 +6,7 @@ metadata:
   labels:
     app: prod-devops-meeting-deployment
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: prod-devops-meeting-deployment
@@ -24,7 +25,7 @@ spec:
                 values:
                 - k8s-ser
       containers:
-      - name: prod-devops-meeting-deployment
+      - name: prod-devops-meeting-container
         image: idrisniyi94/devops-meeting:prod
         resources:
           limits:
@@ -32,4 +33,29 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 5000
-
+        env:
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: devops-meeting-config
+              key: MYSQL_HOST
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: devops-meeting-config
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: devops-meeting-config
+              key: MYSQL_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: devops-meeting-config
+              key: MYSQL_DATABASE
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: devops-meeting-config
+              key: ADMIN_PASSWORD

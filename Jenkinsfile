@@ -5,6 +5,8 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKERHUB_CREDENTIALS = credentials('5f8b634a-148a-4067-b996-07b4b3276fba')
         BRANCH_NAME = "${GIT_BRANCH.split('/')[1]}"
+        SNYK_TOKEN = credentials('snyk_token')
+        SNYK_ORG_ID = credentials('snyk_org_id')
     }
 
     parameters {
@@ -42,6 +44,18 @@ pipeline {
                 }
             }
         }
+        
+        stage('Snyk Security Scan') {
+            steps {
+                sh "snyk auth $SNYK_TOKEN"
+                sh "snyk test --all-projects --org=$SNYK_ORG_ID --json > snyk-result.json"
+                def snykResult = readJSON file: 'snyk-result.json'
+                echo "Snyk Result: ${snykResult.summary.vulnerabilitiesCount} vulnerabilities found"
+
+                sh "snyk monitor --all-projects"
+                slackSend channel: '#alerts', color: 'good', message: "Snyk Security Scan Passed for ${env.BRANCH_NAME} and attached is the report, attached is the report", attachments: [file: 'snyk-result.json']
+            }
+        }
 
         stage('Trivy File Scan') {
             steps {
@@ -56,55 +70,22 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
-            when {
-                expression {
-                    return params.DEPLOYMENT == 'DockerContainer' || params.DEPLOYMENT == 'Kubernetes'
-                }
-            }
-            steps {
-                script {
-                    def imageTag = determineTargetEnvironment()
-                    sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
-                }
-            }
-        }
-
-        stage('Trivy Image Scan') {
-            when {
-                expression {
-                    return params.DEPLOYMENT == 'DockerContainer' || params.DEPLOYMENT == 'Kubernetes'
-                }
-            }
-            steps {
-                script {
-                    def imageTag = determineTargetEnvironment()
-                    sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} > devops-meeting-${imageTag}-trivy-result.txt"
-                }
-            }
-        }
-
-        stage('Docker Push') {
-            when {
-                expression {
-                    return params.DEPLOYMENT == 'DockerContainer' || params.DEPLOYMENT == 'Kubernetes'
-                }
-            }
-            steps {
-                script {
-                    def imageTag = determineTargetEnvironment()
-                    sh "docker push idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
-                }
-            }
-        }
-
         stage('Deploy') {
             steps {
                 script {
                     if (params.DEPLOYMENT == 'DockerContainer') {
                         def containerName = "devops-meeting-${env.BRANCH_NAME}"
-                        // Add Docker deployment steps here if needed
+                        def imageTag = determineTargetEnvironment()
+                        sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
+                        sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} > devops-meeting-${imageTag}-trivy-result.txt"
+                        sh "docker push idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
+                        sh "docker run -d -p 80774:5000 --name ${containerName} idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
                     } else {
+                        def imageTag = determineTargetEnvironment()
+                        sh "docker build -t idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} ."
+                        sh "trivy image idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID} > devops-meeting-${imageTag}-trivy-result.txt"
+                        sh "docker push idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
+
                         dir('./k8s') {
                             kubeconfig(credentialsId: '3f12ff7b-93cb-4ea5-bc21-79bcf5fb1925', serverUrl: '') {
                                 def targetEnvironment = determineTargetEnvironment()

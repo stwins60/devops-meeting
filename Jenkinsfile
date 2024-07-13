@@ -8,7 +8,7 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'DEPLOYMENT', choices: ['DockerContainer', 'Kubernetes'], description: 'Deployment type')
+        choice(name: 'DEPLOYMENT', choices: ['None', 'DockerContainer', 'Kubernetes'], description: 'Deployment type')
     }
 
     stages {

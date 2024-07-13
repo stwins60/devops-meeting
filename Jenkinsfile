@@ -53,7 +53,7 @@ pipeline {
                     sh "snyk auth $SNYK_TOKEN"
                     sh "snyk test --all-projects --org=$SNYK_ORG_ID --report > snyk-result.txt" || echo "Snyk Security Scan Failed"
                     sh "snyk container test $IMAGE_NAME --report >> snyk-result.txt" || echo "Snyk Security Scan Failed"
-                    def snykResult = readJSON file: 'snyk-result.json'
+                    def snykResult = readJSON file: 'snyk-result.txt'
                     slackSend(
                         channel: '#alerts', 
                         color: 'good', 
@@ -63,7 +63,7 @@ pipeline {
                                 fallback: "Snyk Security Scan Report",
                                 text: "Snyk Security Scan Report",
                                 title: "Snyk Security Scan Report",
-                                file: readFile('snyk-result.json')
+                                file: readFile('snyk-result.txt')
                             ]
                         ]
                     )

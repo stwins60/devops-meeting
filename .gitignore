@@ -2,3 +2,4 @@ venv
 __pycache__
 k8s/prod-configMap.yaml
 .env-file
+.env

@@ -51,6 +51,8 @@ pipeline {
                     def imageTag = determineTargetEnvironment()
                     def IMAGE_NAME = "idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
                     sh "snyk auth $SNYK_TOKEN"
+                    sh "python3 -m pip install -r requirements.txt --no-cache-dir --break-system-packages"
+                    sh "docker run node:20-alpine sh -c 'npm install'"
                     sh "snyk test --all-projects --org=$SNYK_ORG_ID --report > snyk-result.txt"
                     sh "snyk container test $IMAGE_NAME --report >> snyk-result.txt"
                     def snykResult = readJSON file: 'snyk-result.txt'

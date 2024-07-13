@@ -7,8 +7,7 @@
     <title>DevOps FullStack</title>
 
     <!-- Favicon -->
-    <link rel="shortcut icon"
-        href="{{ url_for('static', filename='assets/images/logo.png') }}" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='assets/images/logo.png') }}" />
 
     <link rel=" stylesheet" href="{{ url_for('static', filename='assets/css/backend.min.css') }}">
     <link rel="stylesheet"
@@ -147,45 +146,49 @@
                         <div class="event-content">
                             <div id="event1" class="tab-pane fade active show">
                                 {% if meetings %}
-                                    <div class="row">
-                                        {% for meeting in meetings_data %}
-                                        <div class="col-lg-4 col-md-6">
-                                            <div class="card card-block card-stretch card-height">
-                                                <div class="card-body rounded event-detail event-detail-danger disabled">
-                                                    <div class="d-flex align-items-top justify-content-between">
-                                                        <div>
-                                                            <h4 class="mb-2 mr-4">{{ meeting.event_name }}</h4>
-                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
-                                                                    class="fab la-dev pr-2"></i>{{ meeting.tag }}</p>
-                                                            <p class="mb-4 card-description">{{ meeting.description }}</p>
-                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
-                                                                    class="las la-calendar pr-2"></i>{{ meeting.date }}</p>
-                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
-                                                                    class="las la-clock pr-2"></i>{{ meeting.time }}</p>
-                                                            <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
-                                                                    class="las la-globe-americas pr-2"></i>{{ meeting.time_zone }}</p>
-                                                            <div class="d-flex align-items-center pt-4">
-                                                                <!-- <a href="#" class="btn btn-danger mr-3 px-xl-4">50 Min</a> -->
-                                                                <!-- <a href="{{ meeting.link }}"
+                                <div class="row">
+                                    {% for meeting in meetings_data %}
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body rounded event-detail event-detail-danger disabled">
+                                                <div class="d-flex align-items-top justify-content-between">
+                                                    <div>
+                                                        <h4 class="mb-2 mr-4">{{ meeting.event_name }}</h4>
+                                                        <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                class="fab la-dev pr-2"></i>{{ meeting.tag }}</p>
+                                                        <p class="mb-4 card-description">{{ meeting.description }}</p>
+                                                        <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                class="las la-calendar pr-2"></i>{{ meeting.date }}</p>
+                                                        <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                class="las la-clock pr-2"></i>{{ meeting.time }}</p>
+                                                        <p class="mb-2 text-danger font-weight-500 text-uppercase"><i
+                                                                class="las la-globe-americas pr-2"></i>{{
+                                                            meeting.time_zone }}</p>
+                                                        <div class="d-flex align-items-center pt-4">
+                                                            <!-- <a href="#" class="btn btn-danger mr-3 px-xl-4">50 Min</a> -->
+                                                            <!-- <a href="{{ meeting.link }}"
                                                                     class="btn btn-outline-danger copy d-none px-xl-4"
                                                                     data-extra-toggle="copy" title="Copy to clipboard"
                                                                     data-toggle="tooltip"><i
                                                                         class="las la-link pr-2"></i>Copy Link</a> -->
-                                                                <a href="{{ meeting.link }}" class="btn btn-outline-danger px-xl-4" target="_blank">Join</a>
-                                                                <a href="#"
-                                                                    class="btn btn-outline-danger turn-on px-xl-4">Turn
-                                                                    On</a>
-                                                            </div>
+                                                            <a href="{{ meeting.link }}"
+                                                                class="btn btn-outline-danger px-xl-4"
+                                                                target="_blank">Join</a>
+                                                            <a href="#"
+                                                                class="btn btn-outline-danger turn-on px-xl-4">Turn
+                                                                On</a>
                                                         </div>
-                                                
                                                     </div>
+
                                                 </div>
                                             </div>
                                         </div>
-                                        {% endfor %}
                                     </div>
+                                    {% endfor %}
+                                </div>
                                 {% else %}
-                                    <p style="text-align: center; font-size: xx-large; font-weight: bolder;">No meetings has been scheduled.</p>
+                                <p style="text-align: center; font-size: xx-large; font-weight: bolder;">No meetings has
+                                    been scheduled.</p>
                                 {% endif %}
                             </div>
 
@@ -229,6 +232,8 @@
             <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
 
 </body>
+<script src="https://sentry.africantech.dev/js-sdk-loader/996b61df962344767cb64a45f8dc9e60.min.js"
+    crossorigin="anonymous"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var clipboard = new ClipboardJS('#copyLinkButton');
@@ -250,4 +255,5 @@
         });
     });
 </script>
+
 </html>

@@ -86,7 +86,7 @@ class Meeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_name = db.Column(db.String(100), nullable=False)
     tag = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(800), nullable=False)
     link = db.Column(db.String(100), nullable=False)
     time = db.Column(db.String(20), nullable=False)
     time_zone = db.Column(db.String(20), nullable=False)

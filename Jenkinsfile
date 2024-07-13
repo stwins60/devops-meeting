@@ -51,10 +51,21 @@ pipeline {
                     sh "snyk auth $SNYK_TOKEN"
                     sh "snyk test --all-projects --org=$SNYK_ORG_ID --json > snyk-result.json"
                     def snykResult = readJSON file: 'snyk-result.json'
-                    echo "Snyk Result: ${snykResult.summary.vulnerabilitiesCount} vulnerabilities found"
 
                     sh "snyk monitor --all-projects"
-                    slackSend channel: '#alerts', color: 'good', message: "Snyk Security Scan Passed for ${env.BRANCH_NAME} and attached is the report, attached is the report", attachments: [file: 'snyk-result.json']
+                    slackSend(
+                        channel: '#alerts', 
+                        color: 'good', 
+                        message: "Snyk Security Scan Passed for ${env.BRANCH_NAME}. Attached is the report.", 
+                        attachments: [
+                            [
+                                fallback: "Snyk Security Scan Report",
+                                text: "Snyk Security Scan Report",
+                                title: "Snyk Security Scan Report",
+                                file: readFile('snyk-result.json')
+                            ]
+                        ]
+                    )
                 }
             }
         }

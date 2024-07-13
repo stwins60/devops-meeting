@@ -5,8 +5,8 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKERHUB_CREDENTIALS = credentials('5f8b634a-148a-4067-b996-07b4b3276fba')
         BRANCH_NAME = "${GIT_BRANCH.split('/')[1]}"
-        SNYK_TOKEN = credentials('snyk_token')
-        SNYK_ORG_ID = credentials('snyk_org_id')
+        SNYK_TOKEN = credentials('69b64b25-699d-4ce9-8a1b-a53534fd46b3')
+        SNYK_ORG_ID = credentials('a1522670-ed77-4122-b545-b05bdc84715e')
     }
 
     parameters {

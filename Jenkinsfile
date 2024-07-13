@@ -51,8 +51,8 @@ pipeline {
                     def imageTag = determineTargetEnvironment()
                     def IMAGE_NAME = "idrisniyi94/devops-meeting:${imageTag}-${env.BUILD_ID}"
                     sh "snyk auth $SNYK_TOKEN"
-                    sh "snyk test --all-projects --org=$SNYK_ORG_ID --report > snyk-result.txt" || echo "Snyk Security Scan Failed"
-                    sh "snyk container test $IMAGE_NAME --report >> snyk-result.txt" || echo "Snyk Security Scan Failed"
+                    sh "snyk test --all-projects --org=$SNYK_ORG_ID --report > snyk-result.txt"
+                    sh "snyk container test $IMAGE_NAME --report >> snyk-result.txt"
                     def snykResult = readJSON file: 'snyk-result.txt'
                     slackSend(
                         channel: '#alerts', 

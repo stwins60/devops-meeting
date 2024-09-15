@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
@@ -66,6 +67,7 @@ ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
 
 
+
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meetings.db'
 # app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:123456@localhost/meetings"
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
@@ -91,50 +93,164 @@ class Meeting(db.Model):
     time = db.Column(db.String(20), nullable=False)
     time_zone = db.Column(db.String(20), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    
+  
+def convert_to_standard_time(iso_time):
+    # Parse the time in the format YYYYMMDDTHHMMSSZ (UTC format)
+    dt = datetime.strptime(iso_time, "%Y%m%dT%H%M%SZ")
+    # Convert to the desired format
+    return dt.strftime("%Y%m%dT%H%M%S")
 
+def generate_google_calendar_url(event_name, event_date, event_time, event_description):
+    # Combine the event date and time to create a datetime object
+    start_time = datetime.combine(event_date, event_time)
+
+    # Calculate the end time (2 hours after the start time)
+    end_time = start_time + timedelta(hours=2)
+    
+    # Format the start and end time for Google Calendar (YYYYMMDDTHHmmSSZ)
+    start = start_time.strftime("%Y%m%dT%H%M%SZ")
+    end = end_time.strftime("%Y%m%dT%H%M%SZ")
+    
+    start_standard_time = convert_to_standard_time(start)
+    end_standard_time = convert_to_standard_time(end)
+    
+    # Construct the Google Calendar URL
+    google_calendar_url = (
+        f"https://www.google.com/calendar/render?action=TEMPLATE&text={event_name}&"
+        f"dates={start_standard_time}/{end_standard_time}&details={event_description}&sf=true&output=xml"
+    )
+    
+    return google_calendar_url
+
+def generate_ics_file(event_name, event_date, event_time, event_description):
+    # Convert event_date string to datetime object
+    event_date = datetime.strptime(event_date, '%A, %B %d, %Y')
+    
+    # Convert event_time string (e.g., '07:30 PM') to datetime object
+    event_time = datetime.strptime(event_time, '%I:%M %p').time()
+
+    # Combine the date and time into a single datetime object
+    start_time = datetime.combine(event_date, event_time)
+
+    # Calculate the end time (assuming a 2-hour duration for the event)
+    end_time = start_time + timedelta(hours=2)
+
+    # Format the start and end times for the ICS file
+    start = start_time.strftime("%Y%m%dT%H%M%S")
+    end = end_time.strftime("%Y%m%dT%H%M%S")
+
+    # Create ICS file content without time zone information
+    ics_content = (
+        "BEGIN:VCALENDAR\n"
+        "VERSION:2.0\n"
+        "PRODID:-//DevOps FullStack Demo Meeting//EN\n"
+        "BEGIN:VEVENT\n"
+        f"DTSTART:{start}\n"
+        f"DTEND:{end}\n"
+        f"SUMMARY:{event_name}\n"
+        f"DESCRIPTION:{event_description}\n"
+        "END:VEVENT\n"
+        "END:VCALENDAR"
+    )
+    
+    return ics_content
+
+@app.route('/download_ics')
+def download_ics():
+    event_name = request.args.get('event_name')
+    event_date = request.args.get('event_date')
+    event_time = request.args.get('event_time')
+    event_description = request.args.get('event_description')
+
+    # Generate ICS content
+    ics_content = generate_ics_file(event_name, event_date, event_time, event_description)
+    
+    # Create and send response with ICS file
+    response = make_response(ics_content, 200)
+    response.headers["Content-Type"] = "text/calendar"
+    response.headers["Content-Disposition"] = f"attachment; filename={event_name}.ics"
+    
+    return response
 
 @app.route('/')
 def index():
-    # get all meetings
+    # Get all meetings
     meetings = Meeting.query.all()
-    user_timezone = helper.get_user_timezone()
+    user_timezone = helper.get_user_timezone()  # Assuming this returns a valid timezone string like "America/New_York"
+    user_timezone_obj = pytz.timezone(user_timezone)
     meetings_data = []
+
     for meeting in meetings:
-        meeting_time = meeting.time
-        meeting_time_zone = meeting.time_zone
+        meeting_time = meeting.time  # Example: '19:30' (7:30 PM in 24-hour format)
+        meeting_time_zone = meeting.time_zone  # Example: 'America/Chicago', 'CST', etc.
 
-        # Create a datetime object for the meeting time
+        # Map timezone abbreviations (like 'CST') to full timezone names if necessary
+        TIMEZONE_MAPPING = {
+            'CST': 'America/Chicago',
+            'EST': 'America/New_York',
+            'PST': 'America/Los_Angeles',
+            'MST': 'America/Denver',
+            # Add other timezone mappings as needed
+        }
+
+        # Check if meeting_time_zone is a timezone abbreviation and map it to a full timezone
+        if meeting_time_zone in TIMEZONE_MAPPING:
+            meeting_time_zone = TIMEZONE_MAPPING[meeting_time_zone]
+
+        # Combine date and time to create a naive datetime object (no timezone info yet)
         meeting_time_obj = datetime.strptime(meeting_time, '%H:%M').time()
-
-        # Combine date and time to create a datetime object
         meeting_datetime = datetime.combine(meeting.date, meeting_time_obj)
 
-        # # Check if the timezone is aware
-        if meeting_datetime.tzinfo is None or meeting_datetime.tzinfo.utcoffset(meeting_datetime) is None:
+        # Localize the datetime to the stored timezone (meeting's timezone)
+        if meeting_time_zone:
+            try:
+                meeting_timezone_obj = pytz.timezone(meeting_time_zone)
+                # Localize the naive datetime object to the meeting's timezone
+                meeting_datetime = meeting_timezone_obj.localize(meeting_datetime)
+            except pytz.UnknownTimeZoneError:
+                logging.error(f"Unknown timezone: {meeting_time_zone}")
+                # Fallback to UTC if timezone is unknown
+                meeting_datetime = pytz.utc.localize(meeting_datetime)
+        else:
+            # If no timezone is specified, assume it's UTC
             meeting_datetime = pytz.utc.localize(meeting_datetime)
-            # print(meeting_datetime)
-        # Convert the meeting time to the user's timezone
-        # user_timezone_obj = pytz.timezone(user_timezone)
-        # meeting_datetime = meeting_datetime.astimezone(user_timezone_obj)
 
+        # Convert the meeting datetime to the user's timezone
+        meeting_datetime_user_tz = meeting_datetime.astimezone(user_timezone_obj)
+
+        # Format the datetime to 12-hour format with AM/PM for display
+        formatted_time = meeting_datetime_user_tz.strftime('%I:%M %p')  # '07:30 PM'
+
+        # Generate Google Calendar URL (for event in UTC format)
+        google_calendar_url = generate_google_calendar_url(
+            meeting.event_name,
+            meeting_datetime_user_tz.date(),  # Pass only the date part
+            meeting_datetime_user_tz.time(),  # Pass only the time part
+            meeting.description
+        )
+
+        # Add data to meetings_data
         meetings_data.append({
             'event_name': meeting.event_name,
             'tag': meeting.tag,
             'description': meeting.description,
             'link': meeting.link,
-            'time': meeting_datetime.strftime('%I:%M %p %Z'),  # Updated format for 12-hour clock with AM/PM
-            'date': meeting_datetime.strftime('%A, %B %d, %Y'),
-            'time_zone': user_timezone
+            'time': formatted_time,  # Display time in 12-hour format (e.g., 7:30 PM)
+            'date': meeting_datetime_user_tz.strftime('%A, %B %d, %Y'),
+            'time_zone': user_timezone,
+            'google_calendar_url': google_calendar_url  # Add Google Calendar link
         })
+
     logging.info('Meetings data: %s', meetings_data)
-    
+
     response = make_response(
         render_template('member-landing.html', meetings=meetings, meetings_data=meetings_data, user_timezone=user_timezone),
         200
     )
     response.headers.update(headers)
     return response
+
+
 
 
 @app.route('/admin')

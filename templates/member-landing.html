@@ -148,7 +148,7 @@
                                 {% if meetings %}
                                 <div class="row">
                                     {% for meeting in meetings_data %}
-                                    <div class="col-lg-4 col-md-6">
+                                    <div class="col-lg-6 col-md-9">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body rounded event-detail event-detail-danger disabled">
                                                 <div class="d-flex align-items-top justify-content-between">
@@ -173,10 +173,17 @@
                                                                         class="las la-link pr-2"></i>Copy Link</a> -->
                                                             <a href="{{ meeting.link }}"
                                                                 class="btn btn-outline-danger px-xl-4"
-                                                                target="_blank">Join</a>
+                                                                target="_blank" style="margin-right: 10px;">Join</a> 
                                                             <a href="#"
-                                                                class="btn btn-outline-danger turn-on px-xl-4">Turn
-                                                                On</a>
+                                                                class="btn btn-outline-danger turn-on px-xl-4" style="margin-right: 10px;">Turn
+                                                                On
+                                                            </a>
+                                                            <a href="{{ meeting.google_calendar_url }}" class="btn btn-outline-success px-xl-4" target="_blank" style="margin-right: 10px;">
+                                                                Add to Google Calendar
+                                                            </a>
+                                                            <a href="{{ url_for('download_ics', event_name=meeting.event_name, event_date=meeting.date, event_time=meeting.time, event_description=meeting.description) }}" class="btn btn-outline-info px-xl-4" target="_blank">
+                                                                Download ICS
+                                                            </a>
                                                         </div>
                                                     </div>
 

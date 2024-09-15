@@ -44,7 +44,7 @@ headers = {
 }
 
 sentry_sdk.init(
-    dsn="https://996b61df962344767cb64a45f8dc9e60@sentry.africantech.dev/7",
+    dsn="https://61be13f2392627045bb0bc1bd0ce566e@sentry.africantech.dev/9",
     enable_tracing=True,
     traces_sample_rate=1.0,
     profiles_sample_rate=1.0,
@@ -101,7 +101,7 @@ def convert_to_standard_time(iso_time):
     # Convert to the desired format
     return dt.strftime("%Y%m%dT%H%M%S")
 
-def generate_google_calendar_url(event_name, event_date, event_time, event_description):
+def generate_google_calendar_url(event_name, event_date, event_time, event_description, meeting_link):
     # Combine the event date and time to create a datetime object
     start_time = datetime.combine(event_date, event_time)
 
@@ -118,12 +118,12 @@ def generate_google_calendar_url(event_name, event_date, event_time, event_descr
     # Construct the Google Calendar URL
     google_calendar_url = (
         f"https://www.google.com/calendar/render?action=TEMPLATE&text={event_name}&"
-        f"dates={start_standard_time}/{end_standard_time}&details={event_description}&sf=true&output=xml"
+        f"dates={start_standard_time}/{end_standard_time}&details={event_description}&location={meeting_link}&sf=true&output=xml"
     )
     
     return google_calendar_url
 
-def generate_ics_file(event_name, instructor, event_date, event_time, event_description):
+def generate_ics_file(event_name, instructor, event_date, event_time, event_description, event_link):
     # Convert event_date string to datetime object
     event_date = datetime.strptime(event_date, '%A, %B %d, %Y')
     
@@ -151,6 +151,7 @@ def generate_ics_file(event_name, instructor, event_date, event_time, event_desc
         f"DTEND:{end}\n"
         f"SUMMARY:{event_title}\n"
         f"DESCRIPTION:{event_description}\n"
+        f"LOCATION:{event_link}\n"
         "END:VEVENT\n"
         "END:VCALENDAR"
     )
@@ -164,9 +165,10 @@ def download_ics():
     event_date = request.args.get('event_date')
     event_time = request.args.get('event_time')
     event_description = request.args.get('event_description')
+    event_link = request.args.get('event_link')
 
     # Generate ICS content
-    ics_content = generate_ics_file(event_name, instructor, event_date, event_time, event_description)
+    ics_content = generate_ics_file(event_name, instructor, event_date, event_time, event_description, event_link)
     
     # Create and send response with ICS file
     response = make_response(ics_content, 200)
@@ -229,7 +231,8 @@ def index():
             f"{meeting.event_name} with {meeting.instructor}",
             meeting_datetime_user_tz.date(),  # Pass only the date part
             meeting_datetime_user_tz.time(),  # Pass only the time part
-            meeting.description
+            meeting.description,
+            meeting.link
         )
 
         # Add data to meetings_data

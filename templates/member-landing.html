@@ -183,7 +183,7 @@
                                                             <a href="{{ meeting.google_calendar_url }}" class="btn btn-outline-success px-xl-4" target="_blank" style="margin-right: 10px;">
                                                                 Add to Google Calendar
                                                             </a>
-                                                            <a href="{{ url_for('download_ics', event_name=meeting.event_name, instructor=meeting.instructor, event_date=meeting.date, event_time=meeting.time, event_description=meeting.description) }}" class="btn btn-outline-info px-xl-4" target="_blank">
+                                                            <a href="{{ url_for('download_ics', event_name=meeting.event_name, instructor=meeting.instructor, event_date=meeting.date, event_time=meeting.time, event_description=meeting.description, event_link=meeting.link) }}" class="btn btn-outline-info px-xl-4" target="_blank">
                                                                 Download ICS
                                                             </a>
                                                         </div>

@@ -87,6 +87,7 @@ class User(db.Model):
 class Meeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_name = db.Column(db.String(100), nullable=False)
+    instructor = db.Column(db.String(100), nullable=False)
     tag = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(800), nullable=False)
     link = db.Column(db.String(100), nullable=False)
@@ -122,7 +123,7 @@ def generate_google_calendar_url(event_name, event_date, event_time, event_descr
     
     return google_calendar_url
 
-def generate_ics_file(event_name, event_date, event_time, event_description):
+def generate_ics_file(event_name, instructor, event_date, event_time, event_description):
     # Convert event_date string to datetime object
     event_date = datetime.strptime(event_date, '%A, %B %d, %Y')
     
@@ -138,6 +139,7 @@ def generate_ics_file(event_name, event_date, event_time, event_description):
     # Format the start and end times for the ICS file
     start = start_time.strftime("%Y%m%dT%H%M%S")
     end = end_time.strftime("%Y%m%dT%H%M%S")
+    event_title = f"{event_name} with {instructor}"
 
     # Create ICS file content without time zone information
     ics_content = (
@@ -147,7 +149,7 @@ def generate_ics_file(event_name, event_date, event_time, event_description):
         "BEGIN:VEVENT\n"
         f"DTSTART:{start}\n"
         f"DTEND:{end}\n"
-        f"SUMMARY:{event_name}\n"
+        f"SUMMARY:{event_title}\n"
         f"DESCRIPTION:{event_description}\n"
         "END:VEVENT\n"
         "END:VCALENDAR"
@@ -158,12 +160,13 @@ def generate_ics_file(event_name, event_date, event_time, event_description):
 @app.route('/download_ics')
 def download_ics():
     event_name = request.args.get('event_name')
+    instructor = request.args.get('instructor')
     event_date = request.args.get('event_date')
     event_time = request.args.get('event_time')
     event_description = request.args.get('event_description')
 
     # Generate ICS content
-    ics_content = generate_ics_file(event_name, event_date, event_time, event_description)
+    ics_content = generate_ics_file(event_name, instructor, event_date, event_time, event_description)
     
     # Create and send response with ICS file
     response = make_response(ics_content, 200)
@@ -223,7 +226,7 @@ def index():
 
         # Generate Google Calendar URL (for event in UTC format)
         google_calendar_url = generate_google_calendar_url(
-            meeting.event_name,
+            f"{meeting.event_name} with {meeting.instructor}",
             meeting_datetime_user_tz.date(),  # Pass only the date part
             meeting_datetime_user_tz.time(),  # Pass only the time part
             meeting.description
@@ -232,6 +235,7 @@ def index():
         # Add data to meetings_data
         meetings_data.append({
             'event_name': meeting.event_name,
+            'instructor': meeting.instructor,
             'tag': meeting.tag,
             'description': meeting.description,
             'link': meeting.link,
@@ -348,6 +352,7 @@ def add_event():
     form = MeetingForm()
 
     event_name = request.form['event_name']
+    instructor = request.form['instructor']
     tag = request.form['tag']
     description = request.form['description']
     link = request.form['link']
@@ -360,7 +365,7 @@ def add_event():
     date_obj = datetime.strptime(date, '%Y-%m-%d').date()
 
     with app.app_context():
-        new_meeting = Meeting(event_name=event_name, tag=tag, description=description, link=link, time=time, time_zone=time_zone, date=date_obj)
+        new_meeting = Meeting(event_name=event_name, instructor=instructor, tag=tag, description=description, link=link, time=time, time_zone=time_zone, date=date_obj)
         db.session.add(new_meeting)
         db.session.commit()
         logging.info('New event added')
@@ -371,26 +376,47 @@ def add_event():
 @is_logged_in
 def edit_event(id):
     form = MeetingForm()
+    
+    # Fetch the meeting object by its ID
     meeting = db.session.query(Meeting).filter(Meeting.id == id).first()
+
+    if not meeting:
+        # Handle the case where the meeting does not exist
+        flash('Meeting not found', 'danger')
+        return redirect(url_for('admin'))
+
     if request.method == 'POST':
+        # Update the meeting object with form data and request form inputs
         meeting.event_name = request.form['event_name']
+        meeting.instructor = request.form['instructor']
         meeting.tag = request.form['tag']
         meeting.description = request.form['description']
         meeting.link = request.form['link']
         meeting.date = request.form['date']
         meeting.time = request.form['time']
+
+        # Time zone is updated via the form
         meeting.time_zone = form.time_zone.data
-        db.session.commit()
-        logging.info('Event edited')
-        return redirect(url_for('admin'))
+
+        # Commit the changes to the database
+        try:
+            db.session.commit()
+            logging.info(f'Event {id} edited successfully')
+            flash('Event updated successfully', 'success')
+            return redirect(url_for('admin'))
+        except Exception as e:
+            db.session.rollback()  # Rollback if there's any error
+            logging.error(f'Error updating event: {e}')
+            flash('Error updating the event', 'danger')
+
+    # Pre-populate the time zone in the form
     form.time_zone.data = meeting.time_zone
-    logging.info('Edit event page')
-    response = make_response(
-        render_template('edit_event.html', meeting=meeting, form=form),
-        200
-    )
-    response.headers.update(headers)
-    return response
+
+    logging.info('Edit event page loaded')
+    
+    # Render the edit_event page with the meeting data
+    return render_template('edit_event.html', meeting=meeting, form=form)
+
 
 @app.route('/delete_event/<int:id>', methods=['POST', 'GET'])
 @is_logged_in
